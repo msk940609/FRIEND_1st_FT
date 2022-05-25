@@ -8,10 +8,11 @@ library(extrafont)
 #The command should be run one time. when you want to use selected font in your PC, running line 11 to 14 only one time.
 #font_import() 
 #y
-#remove.packages("Rttf2pt1")
+library(remotes)
 #remotes::install_version("Rttf2pt1", version = "1.3.8")
 
 
+library(extrafont)
 #font_import(pattern = "arial") 
 #y
 

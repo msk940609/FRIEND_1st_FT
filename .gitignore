@@ -10,5 +10,5 @@ Figure/
 Datafile/
 
 #ignore example figure
-.tiff
-.png
+*.tiff
+*.png

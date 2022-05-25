@@ -261,7 +261,7 @@ FT_envi_trend3_ul=subset(FT_envi_trend2_ul,!is.na(FT_envi_trend2_ul$value))
 
 ggplot(data=FT_envi_trend2_ul)+
   geom_area(data = FT_envi_trend_ul ,aes(x=date2, y=conc2,fill=type),position = position_stack(reverse = T),na.rm = T)+
-  #geom_rect(data=FT_envi_trend_ul_rect,aes(xmin=date2-43200,xmax=date2+43200, ymax=Inf, ymin=-Inf), fill="white")+
+  geom_rect(data=FT_envi_trend_ul_rect,aes(xmin=date2-43200,xmax=date2+43200, ymax=Inf, ymin=-Inf), fill="white")+
   geom_line(data = FT_envi_trend2_ul ,aes(x=date2, y=val2, lty=variable),size=0.7, na.rm = F)+
   geom_line(data = FT_envi_trend3_ul ,aes(x=date2, y=val2, lty=variable),size=0.7, na.rm = F)+
   geom_point(data = FT_envi_trend2_ul ,aes(x=date2, y=val2*1.1),size=NA, na.rm = F,col=NA)+
@@ -318,7 +318,7 @@ FT_envi_trend3_bj=subset(FT_envi_trend2_bj,!is.na(FT_envi_trend2_bj$value))
 
 ggplot(data=FT_envi_trend2_bj)+
   geom_area(data = FT_envi_trend_bj ,aes(x=date2, y=conc2,fill=type),position = position_stack(reverse = T),na.rm = T)+
-  #geom_rect(data=FT_envi_trend_bj_rect,aes(xmin=date2-43200,xmax=date2+43200, ymax=Inf, ymin=-Inf), fill="white")+
+  geom_rect(data=FT_envi_trend_bj_rect,aes(xmin=date2-43200,xmax=date2+43200, ymax=Inf, ymin=-Inf), fill="white")+
   geom_line(data = FT_envi_trend2_bj ,aes(x=date2, y=val2, lty=variable),size=0.7, na.rm = F)+
   geom_line(data = FT_envi_trend3_bj ,aes(x=date2, y=val2, lty=variable),size=0.7, na.rm = F)+
   geom_point(data = FT_envi_trend2_bj ,aes(x=date2, y=val2*1.1),size=NA, na.rm = F,col=NA)+
@@ -379,7 +379,7 @@ FT_envi_trend3_ss=subset(FT_envi_trend2_ss,!is.na(FT_envi_trend2_ss$value))
 
 ggplot(data=FT_envi_trend2_ss)+
   geom_area(data = FT_envi_trend_ss ,aes(x=date2, y=conc2,fill=type),position = position_stack(reverse = T),na.rm = T)+
-  #geom_rect(data=FT_envi_trend_ss_rect,aes(xmin=date2-43200,xmax=date2+43200, ymax=Inf, ymin=-Inf), fill="white")+
+  geom_rect(data=FT_envi_trend_ss_rect,aes(xmin=date2-43200,xmax=date2+43200, ymax=Inf, ymin=-Inf), fill="white")+
   geom_line(data = FT_envi_trend2_ss ,aes(x=date2, y=val2, lty=variable),size=0.7, na.rm = F)+
   geom_line(data = FT_envi_trend3_ss ,aes(x=date2, y=val2, lty=variable),size=0.7, na.rm = F)+
   geom_point(data = FT_envi_trend2_ss ,aes(x=date2, y=val2*1.1),size=NA, na.rm = F,col=NA)+
