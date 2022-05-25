@@ -8,3 +8,7 @@ Figure/
 
 #ignore datafile
 Datafile/
+
+#ignore example figure
+.tiff
+.png
