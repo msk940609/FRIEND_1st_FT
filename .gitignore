@@ -1,0 +1,10 @@
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+
+#ignore figure
+Figure/
+
+#ignore datafile
+Datafile/
