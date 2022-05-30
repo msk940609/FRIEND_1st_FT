@@ -57,6 +57,7 @@ ft_merge$Sample=paste(ft_merge$Group,ft_merge$No, sep = "_")
 table(ft_merge$Group)
 ft_merge$Freq=1
 
+##richness histogram=====
 fm_obs=ft_merge[,c("Group","No","Formula","Freq")] %>% 
   dcast(Group~Formula,value.var = "Freq",sum) %>% 
   melt(id.vars=c("Group")) %>% `colnames<-`(c("Group","Formula","cnt"))
@@ -105,6 +106,76 @@ ggplot(fm_obs_sel,aes(x=cnt))+
   ggsave(filename("richnees_hist"), height = 10, width = 50, units = "cm", dpi = 300)
 
 
+#one observe and PM density=====
+fm_obs_sel
+
+fm_cnt1=subset(fm_obs_sel,fm_obs_sel$cnt==1)
+
+fm_sel=unique(fm_cnt1$Formula)
+
+fm_one=ft_merge %>% inner_join(fm_cnt1)
+
+fm_cnt1=fm_cnt1 %>% inner_join(fm_one[,c("Group","Formula","Sample")])
+ft_envi
+fm_cnt1_pm=fm_cnt1 %>% left_join(ft_envi[,c("Sample","PM2.5")])
+
+fm_cnt2=subset(fm_obs_sel,fm_obs_sel$cnt==2)
+
+fm_sel=unique(fm_cnt2$Formula)
+
+fm_two=ft_merge %>% inner_join(fm_cnt2)
+
+fm_cnt2=fm_cnt2 %>% inner_join(fm_two[,c("Group","Formula","Sample")])
+
+fm_cnt2
+
+fm_cnt2_pm=fm_cnt2 %>% left_join(ft_envi[,c("Sample","PM2.5")])
+
+ggplot(fm_cnt1_pm, aes(x=PM2.5, fill=Group))+
+  geom_density()+
+  #geom_histogram(binwidth = 5)+
+  facet_rep_wrap(.~Group, scales = "free", ncol=5)
+
+
+fm_cnt2_pm_m=melt(fm_cnt2_pm,id.vars = c("Group","Formula","Group2","Sample","cnt")) %>% 
+  dcast(Group+Group2+cnt~Formula, mean,value.var = "value") %>% 
+  melt(id.vars=c("Group","Group2","cnt"),na.rm = T )  %>% `colnames<-`(c("Group","Group2","cnt","Formula","PM2.5"))
+
+fm_cnt2_pm_m
+
+fm_cnt1_pm
+
+fm_cnt1_pm$id=fm_cnt1_pm$Sample
+
+fm_cnt1_pm=fm_cnt1_pm %>% separate(id, c("Re","No"),sep = "_")
+
+fm_cnt1_pm$PM_re=round(fm_cnt1_pm$PM2.5,1)
+
+ggplot(fm_cnt1_pm, aes(x=as.factor(PM_re), y=cnt))+
+  geom_bar(position = position_stack(), stat = "identity")+
+  facet_rep_wrap(.~Group2, ncol=2, scales = "free")+
+  ggsave(filename("cnt1_histo"), height = 20, width = 50, units = "cm", dpi = 300)
+
+
+
+ggplot(fm_cnt1_pm, aes(x=PM2.5, fill=Group))+
+  geom_density()+
+  #geom_histogram(binwidth = 5)+
+  facet_rep_wrap(.~Group, scales = "free", ncol=5)
+
+ggplot(fm_cnt2_pm_m, aes(x=PM2.5, fill=Group))+
+  geom_density()+
+  #geom_histogram(binwidth = 5)+
+  facet_rep_wrap(.~Group, scales = "free", ncol=5)+
+  ggsave(filename("cnt1_histo"), height = 10, width = 100, units = "cm", dpi = 300)
+
+
+
+
+
+
+
+#####
 ft_merge
 
 ft_tot=as.data.table(aggregate(ft_merge$Bromo.Inty,by=list(Sample=ft_merge$Sample), sum)) %>% `colnames<-`(c("Sample","tot"))
@@ -200,7 +271,12 @@ mol_rich_min2=mol_rich_min %>% left_join(mol_rich_nna[,c("Group","variable","val
 mol_rich
 mol_rich_n
 
-mol_acum=mol_rich_n[,c("Sample","Group","x","WSOC")]
+mol_rich_n=mol_rich_n %>% inner_join(FT_envi_sel[,c("Sample","SOCp")])
+
+
+mol_acum=mol_rich_n[,c("Sample","Group","x","SOCp")]
+
+
 
 grp=unique(mol_acum$Group)
 d_acu=data.table()
@@ -208,7 +284,7 @@ for (j in 1:length(grp)) {
   #j=2
   
   mol_acum_tmp=subset(mol_acum,mol_acum$Group==grp[j])
-  mol_acum_tmp=mol_acum_tmp[order(mol_acum_tmp$WSOC),]
+  mol_acum_tmp=mol_acum_tmp[order(mol_acum_tmp$SOCp),]
   mol_acum_tmp$id=seq(1, nrow(mol_acum_tmp),by=1)
   
   ord=as.vector(mol_acum_tmp$Sample)
@@ -223,7 +299,7 @@ for (j in 1:length(grp)) {
     
     dt=unique(dt)
     mol_temp=subset(mol_acum_tmp,mol_acum_tmp$Sample==ord[i])
-    new=data.table(Sample=ord[i],Group=unique(dt$Group), mole_acu=dim(dt)[1], No=i, var=mol_temp$WSOC)
+    new=data.table(Sample=ord[i],Group=unique(dt$Group), mole_acu=dim(dt)[1], No=i, var=mol_temp$SOCp)
     
     d_acu=rbind(d_acu, new)
     
@@ -236,25 +312,40 @@ d_acu
 d_acu_pm
 #d_acu_wsoc=d_acu
 #d_acu_pm=d_acu
+#d_acu_soc=d_acu
+d_acu_socp=d_acu
 d_acu_pm
 table(d_acu$Group)
+
 
 
 #d_acu2=d_acu %>% inner_join(FT_envi[,c("Sample","PM2.5")])
 d_acu_oc=d_acu %>% inner_join(FT_envi[,c("Sample","PM2.5")])
 
 d_acu_wsoc
+d_acu_pm
+
+
+aggregate(d_acu_wsoc$mole_acu,by=list(Group=d_acu_wsoc$Group),max)
+aggregate(d_acu_pm$mole_acu,by=list(Group=d_acu_wsoc$Group),max)
+
+d_acu_soc
+
+d_acu_soc=d_acu_soc %>% inner_join(FT_envi_sel[,c("Sample","SOCp")])
+
+
 
 ggplot()+
-  geom_smooth(data = d_acu_wsoc ,aes(x=var   , y=mole_acu, group=Group),col="black", lty=2, method = "lm",formula=y~log(x),level = 0.99)+
-  geom_line(data = d_acu_wsoc ,aes(x=var   , y=mole_acu, col=Group),size=1, na.rm = F)+
-  geom_point(data = d_acu_wsoc ,aes(x=var   , y=mole_acu, col=Group),size=2, na.rm = F)+
-  scale_y_continuous(name = "Cumulative number of AOM")+
+  geom_smooth(data = d_acu_soc ,aes(x=var   , y=mole_acu, group=Group),col="black", lty=2, method = "lm",formula=y~log(x),level = 0.99)+
+  geom_line(data = d_acu_soc ,aes(x=var   , y=mole_acu, col=Group),size=1, na.rm = F)+
+  geom_point(data = d_acu_soc ,aes(x=var   , y=mole_acu, col=Group),size=2, na.rm = F)+
+  scale_y_continuous(name = "Cumulative number of AOM", breaks = seq(0,10000,2000))+
   #scale_x_continuous(name = expression(bold("PM"["2.5"]~"("*"\u03bcg/"*m^"3"*")")))+
   #scale_x_continuous(name = expression(bold("OC"~"("*"\u03bcg/"*m^"3"*")")))+
-  scale_x_continuous(name = expression(bold("WSOC"~"("*"\u03bcg/"*m^"3"*")")))+
+  scale_x_continuous(name = expression(bold("SOC"~"("*"\u03bcg/"*m^"3"*")")), expand = c(0.05,0.05))+
+  #scale_x_continuous(name = expression(bold("SOC"~"(%)")), expand = c(0.05,0.05))+
   #scale_x_continuous(name = "Number of days", expand = c(0.05,0.05), breaks = seq(1,30,5))+
-  facet_wrap(Group~., scales = "free",ncol=5,dir = "h", strip.position = c("top"))+
+  facet_rep_wrap(Group~., scales = "free",ncol=5,dir = "h", strip.position = c("top"), repeat.tick.labels = T)+
   theme_bw()+
   theme(panel.grid = element_blank(),
         strip.placement = "outside",
@@ -279,10 +370,14 @@ ggplot()+
         #legend.position = c(0.08,1.02)
         legend.position = "NULL")+
   xlab("")+
-  ggsave(filename("cumulaitive_richness_WSOC_re"), height = 11, width = 50, units = "cm", dpi = 300)
+  ggsave(filename("cumulaitive_richness_SOC"), height = 11, width = 50, units = "cm", dpi = 300)
 
 #richness olot=====
-mol_rich_n_m_sel=mol_rich_n_m
+
+table(mol_rich_n_m$variable)
+
+mol_rich_n_m_sel= mol_rich_n_m %>% filter(variable%in%c("PM2.5","OC","POC","SOC"))
+
 mol_rich_n_m_sel$Group=factor(mol_rich_n_m_sel$Group,levels = c("Ulaanbaatar","Beijing","Seosan","Seoul","Noto"))
 mol_rich_n_m_sel$Group2=factor(mol_rich_n_m_sel$Group,levels = c("Ulaanbaatar","Beijing","Seosan","Seoul","Noto"),
                                labels = c(expression(bold("Ulaanbaatar")),
@@ -291,6 +386,8 @@ mol_rich_n_m_sel$Group2=factor(mol_rich_n_m_sel$Group,levels = c("Ulaanbaatar","
                                           expression(bold("Seoul")),
                                           expression(bold("Noto"))
                                ))
+
+
 
 mol_rich_n_m_sel
 mol_rich_n_m_sel$variable2=factor(mol_rich_n_m_sel$variable,levels = c("PM2.5","OC","POC","SOC"),
@@ -891,7 +988,9 @@ ft_ul=melt(ft_merge_ul[,c("Sample","Formula","Freq")],id.vars = c("Sample","Form
 ft_ul_bet=as.data.frame(ft_ul[,-"Sample"]) %>% `row.names<-`(ft_ul$Sample)
 
 ft_ul[,1:23]
-beta_ul = beta.div.comp(ft_ul_bet, coef="J", quant=FALSE)
+beta_ul = beta.div.comp(ft_ul_bet, coef="J", quant=T)
+
+beta_ul$part
 
 t1=as.data.frame(as.matrix(beta_ul$repl))
 t1$Sample=row.names(t1)
@@ -899,12 +998,16 @@ t1$Sample=row.names(t1)
 FT_envi_sel[ , .SD[which.min(OC)], by = Group]
 FT_envi_sel[ , .SD[which.min(PM2.5)], by = Group]
 
-repl_ul=t1[,c("Sample","Ulaanbaatar_13")] %>% `colnames<-`(c("Sample","replacement"))
+repl_ul=t1[,c("Sample","Ulaanbaatar_1")] %>% `colnames<-`(c("Sample","replacement"))
+
+#repl_ul=t1[,c("Sample","Ulaanbaatar_13")] %>% `colnames<-`(c("Sample","replacement"))
 
 t1=as.data.frame(as.matrix(beta_ul$rich))
 t1$Sample=row.names(t1)
 
 rich_ul=t1[,c("Sample","Ulaanbaatar_13")] %>% `colnames<-`(c("Sample","richness"))
+rich_ul=t1[,c("Sample","Ulaanbaatar_1")] %>% `colnames<-`(c("Sample","richness"))
+
 var_ul=repl_ul %>% inner_join(rich_ul)
 #####bj=====
 ft_merge_bj=subset(ft_merge,ft_merge$Group=="Beijing")
@@ -916,7 +1019,7 @@ ft_bj=melt(ft_merge_bj[,c("Sample","Formula","Freq")],id.vars = c("Sample","Form
 ft_bj_bet=as.data.frame(ft_bj[,-"Sample"]) %>% `row.names<-`(ft_bj$Sample)
 
 ft_bj[,1:23]
-beta_bj = beta.div.comp(ft_bj_bet, coef="J", quant=FALSE)
+beta_bj = beta.div.comp(ft_bj_bet, coef="J", quant=T)
 
 FT_envi_sel[ , .SD[which.min(OC)], by = Group]
 FT_envi_sel[ , .SD[which.min(PM2.5)], by = Group]
@@ -924,12 +1027,13 @@ FT_envi_sel[ , .SD[which.min(PM2.5)], by = Group]
 t1=as.data.frame(as.matrix(beta_bj$repl))
 t1$Sample=row.names(t1)
 
-repl_bj=t1[,c("Sample","Beijing_25")] %>% `colnames<-`(c("Sample","replacement"))
+repl_bj=t1[,c("Sample","Beijing_1")] %>% `colnames<-`(c("Sample","replacement"))
+#repl_bj=t1[,c("Sample","Beijing_25")] %>% `colnames<-`(c("Sample","replacement"))
 
 t1=as.data.frame(as.matrix(beta_bj$rich))
 t1$Sample=row.names(t1)
 
-rich_bj=t1[,c("Sample","Beijing_25")] %>% `colnames<-`(c("Sample","richness"))
+rich_bj=t1[,c("Sample","Beijing_1")] %>% `colnames<-`(c("Sample","richness"))
 var_bj=repl_bj %>% inner_join(rich_bj)
 
 #####ss=====
@@ -942,7 +1046,7 @@ ft_ss=melt(ft_merge_ss[,c("Sample","Formula","Freq")],id.vars = c("Sample","Form
 ft_ss_bet=as.data.frame(ft_ss[,-"Sample"]) %>% `row.names<-`(ft_ss$Sample)
 
 ft_ss[,1:23]
-beta_ss = beta.div.comp(ft_ss_bet, coef="J", quant=FALSE)
+beta_ss = beta.div.comp(ft_ss_bet, coef="J", quant=T)
 
 FT_envi_sel[ , .SD[which.min(OC)], by = Group]
 FT_envi_sel[ , .SD[which.min(PM2.5)], by = Group]
@@ -950,11 +1054,14 @@ FT_envi_sel[ , .SD[which.min(PM2.5)], by = Group]
 t1=as.data.frame(as.matrix(beta_ss$repl))
 t1$Sample=row.names(t1)
 
-repl_ss=t1[,c("Sample","Seosan_23")] %>% `colnames<-`(c("Sample","replacement"))
+
+repl_ss=t1[,c("Sample","Seosan_1")] %>% `colnames<-`(c("Sample","replacement"))
+#repl_ss=t1[,c("Sample","Seosan_23")] %>% `colnames<-`(c("Sample","replacement"))
 
 t1=as.data.frame(as.matrix(beta_ss$rich))
 t1$Sample=row.names(t1)
 
+rich_ss=t1[,c("Sample","Seosan_1")] %>% `colnames<-`(c("Sample","richness"))
 rich_ss=t1[,c("Sample","Seosan_23")] %>% `colnames<-`(c("Sample","richness"))
 var_ss=repl_ss %>% inner_join(rich_ss)
 
@@ -968,7 +1075,7 @@ ft_sul=melt(ft_merge_sul[,c("Sample","Formula","Freq")],id.vars = c("Sample","Fo
 ft_sul_bet=as.data.frame(ft_sul[,-"Sample"]) %>% `row.names<-`(ft_sul$Sample)
 
 ft_sul[,1:23]
-beta_sul = beta.div.comp(ft_sul_bet, coef="J", quant=FALSE)
+beta_sul = beta.div.comp(ft_sul_bet, coef="J", quant=T)
 
 FT_envi_sel[ , .SD[which.min(OC)], by = Group]
 FT_envi_sel[ , .SD[which.min(PM2.5)], by = Group]
@@ -994,7 +1101,7 @@ ft_nt=melt(ft_merge_nt[,c("Sample","Formula","Freq")],id.vars = c("Sample","Form
 ft_nt_bet=as.data.frame(ft_nt[,-"Sample"]) %>% `row.names<-`(ft_nt$Sample)
 
 ft_nt[,1:23]
-beta_nt = beta.div.comp(ft_nt_bet, coef="J", quant=FALSE)
+beta_nt = beta.div.comp(ft_nt_bet, coef="J", quant=T)
 
 FT_envi_sel[ , .SD[which.min(OC)], by = Group]
 FT_envi_sel[ , .SD[which.min(PM2.5)], by = Group]
@@ -1002,15 +1109,15 @@ FT_envi_sel[ , .SD[which.min(PM2.5)], by = Group]
 t1=as.data.frame(as.matrix(beta_nt$repl))
 t1$Sample=row.names(t1)
 
-repl_nt=t1[,c("Sample","Noto_17")] %>% `colnames<-`(c("Sample","replacement"))
+repl_nt=t1[,c("Sample","Noto_1")] %>% `colnames<-`(c("Sample","replacement"))
+#repl_nt=t1[,c("Sample","Noto_17")] %>% `colnames<-`(c("Sample","replacement"))
 
 t1=as.data.frame(as.matrix(beta_nt$rich))
 t1$Sample=row.names(t1)
 
-rich_nt=t1[,c("Sample","Noto_17")] %>% `colnames<-`(c("Sample","richness"))
+rich_nt=t1[,c("Sample","Noto_1")] %>% `colnames<-`(c("Sample","richness"))
+#rich_nt=t1[,c("Sample","Noto_17")] %>% `colnames<-`(c("Sample","richness"))
 var_nt=repl_nt %>% inner_join(rich_nt)
-
-
 
 var_ul
 var_bj
@@ -1067,7 +1174,10 @@ aom_var_m_env$ocdif=aom_var_m_env$OC-aom_var_m_env$OCmin
 aom_var_m_env$pmdif=aom_var_m_env$PM2.5-aom_var_m_env$PMmin
 aom_var_m_env
 
+lims <- as.POSIXct(strptime(c("2020-12-15 8:00","2021-01-14 12:00"), format = "%Y-%m-%d %H:%M"))
+
 ggplot(data=aom_var_m)+
+  geom_rect(data=subset(FT_envi_trend,FT_envi_trend$Event!="Normal"),aes(xmin=date2-43200,xmax=date2+43200, ymax=Inf, ymin=-Inf, fill=Event), alpha=0.3)+
   geom_line(data = aom_var_m ,aes(x=date2, y=value, col=variable2 ),size=0.7, na.rm = F)+
   geom_point(data = aom_var_m ,aes(x=date2, y=value,shape=variable2,col=variable2))+
   facet_wrap(.~Group, ncol = 1, scales = "free")+
