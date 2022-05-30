@@ -31,7 +31,7 @@ insert_minor_2 <- function(major_labs, n_minor) {labs <-
 labs[1:(length(labs)-n_minor)]}
 
 ###molecular_richness=====
-FT_envi=fread("Datafile/FRIEND_1st_envi_re.csv")
+ft_envi=fread("Datafile/FRIEND_1st_envi_re.csv")
 
 FT_envi=ft_envi
 FT_envi$WSOCbb=2.94*FT_envi$Levoglucosan
@@ -168,8 +168,6 @@ ggplot(fm_cnt2_pm_m, aes(x=PM2.5, fill=Group))+
   #geom_histogram(binwidth = 5)+
   facet_rep_wrap(.~Group, scales = "free", ncol=5)+
   ggsave(filename("cnt1_histo"), height = 10, width = 100, units = "cm", dpi = 300)
-
-
 
 
 

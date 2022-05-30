@@ -15,6 +15,7 @@ environment(replacement) <- base
 unlockBinding("Sys.getlocale", base)
 assign("Sys.getlocale", replacement, envir = base)
 lockBinding("Sys.getlocale", base)
+install.packages("rJava")
 
 library(rJava)
 rJava::.jinit()
